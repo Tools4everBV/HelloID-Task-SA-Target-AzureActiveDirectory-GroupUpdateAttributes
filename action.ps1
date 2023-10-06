@@ -6,7 +6,7 @@ $formObject = @{
     displayName = $form.displayName
 }
 #GroupId is seperated from the form object becasue it is not send in the body of the update call
-$groupId = $form.groupId
+$groupIdentity = $form.groupIdentity
 
 try {
     Write-Information "Executing AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($formObject.DisplayName)]"
@@ -29,7 +29,7 @@ try {
     $headers.Add("Content-Type", "application/json")
 
     $splatUpdateGroupParams = @{
-        Uri         = "https://graph.microsoft.com/v1.0/groups/$($groupId)"
+        Uri         = "https://graph.microsoft.com/v1.0/groups/$($groupIdentity)"
         ContentType = 'application/json'
         Method      = 'PATCH'
         Headers     = $headers
@@ -40,30 +40,30 @@ try {
     $auditLog = @{
         Action            = 'UpdateResource'
         System            = 'AzureActiveDirectory'
-        TargetIdentifier  = $groupId
+        TargetIdentifier  = $groupIdentity
         TargetDisplayName = $formObject.displayName
-        Message           = "AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupId)] executed successfully"
+        Message           = "AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupIdentity)] executed successfully"
         IsError           = $false
     }
     Write-Information -Tags 'Audit' -MessageData $auditLog
-    Write-Information "AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupId)] executed successfully"
+    Write-Information "AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupIdentity)] executed successfully"
 }
 catch {
     $ex = $_
     $auditLog = @{
         Action            = 'UpdateResource'
         System            = 'AzureActiveDirectory'
-        TargetIdentifier  = $groupId
+        TargetIdentifier  = $groupIdentity
         TargetDisplayName = $formObject.displayName
-        Message           = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupId)], error: $($ex.Exception.Message)"
+        Message           = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupIdentity)], error: $($ex.Exception.Message)"
         IsError           = $true
     }
     if ($ex.Exception.GetType().FullName -eq 'Microsoft.PowerShell.Commands.HttpResponseException') {
-        $auditLog.Message = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupId)], error: $($ex.ErrorDetails)" 
+        $auditLog.Message = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupIdentity)], error: $($ex.ErrorDetails)" 
     } elseif ($ex.Exception.Response.StatusCode -eq 404) { 
-        $auditLog.Message = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupId)], the specified group does not exist in the Azure Active Directory." 
+        $auditLog.Message = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupIdentity)], the specified group does not exist in the Azure Active Directory." 
     } else { 
-        $auditLog.Message = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupId)], error: $($ex.Exception.Message)" 
+        $auditLog.Message = "Could not execute AzureActiveDirectory action: [GroupUpdateAttributes] for: [$($groupIdentity)], error: $($ex.Exception.Message)" 
     }
     Write-Information -Tags "Audit" -MessageData $auditLog
     Write-Error "$($auditLog.Message)"
